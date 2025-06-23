@@ -1,0 +1,16 @@
+// Project-local debug tasks
+//
+// For more documentation on how to configure debug tasks,
+// see: https://zed.dev/docs/debugger
+[
+  {
+    "label": "Debug Feedback System",
+    "adapter": "Debugpy",
+    "module": "uvicorn",
+    "cwd": "${ZED_WORKTREE_ROOT}",
+    "request": "launch",
+    "args": ["app.main:app", "--reload"],
+    "autoReload": { "enable": true },
+    "justMyCode": true
+  }
+]
