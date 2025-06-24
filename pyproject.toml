@@ -9,6 +9,7 @@ dependencies = [
     "motor>=3.3.0",
     "pymongo>=4.6.0",
     "pydantic-settings>=2.0.0",
+    "aio-pika>=9.5.5",
 ]
 
 [tool.uv.workspace]
