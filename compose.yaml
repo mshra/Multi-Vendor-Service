@@ -6,8 +6,15 @@ services:
     ports:
       - "8000:80"
     depends_on:
-      - rabbitmq
-      - mongo
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      mock-vendor:
+        condition: service_started
+    environment:
+      - env=docker
+    restart: unless-stopped
 
   mock-vendor:
     build:
@@ -15,15 +22,39 @@ services:
       dockerfile: docker/vendor/Dockerfile
     ports:
       - "8001:80"
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/worker/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      mock-vendor:
+        condition: service_started
+    environment:
+      - env=docker
+    restart: unless-stopped
+    deploy:
+      replicas: 3
 
   rabbitmq:
-    image: rabbitmq:3
+    image: rabbitmq:3-management
     ports:
       - "5672:5672"
       - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   mongo:
     image: mongo
@@ -33,6 +64,12 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   mongo-express:
     image: mongo-express
@@ -44,3 +81,6 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: admin
       ME_CONFIG_MONGODB_URL: mongodb://admin:admin@mongo:27017/
       ME_CONFIG_BASICAUTH: false
+    depends_on:
+      mongo:
+        condition: service_healthy
