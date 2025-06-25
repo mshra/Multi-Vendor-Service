@@ -12,5 +12,12 @@
     "args": ["app.main:app", "--reload"],
     "autoReload": { "enable": true },
     "justMyCode": true
+  },
+  {
+    "label": "Debug Worker",
+    "adapter": "Debugpy",
+    "program": "${ZED_FILE}",
+    "request": "launch",
+    "autoReload": { "enable": true }
   }
 ]
