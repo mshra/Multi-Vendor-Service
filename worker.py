@@ -27,40 +27,43 @@ async def handle_message(message: AbstractIncomingMessage):
             await collection.update_one(
                 {"request_id": request_id}, {"$set": {"status": Status.PROCESSING}}
             )
+            log.info(f"Status of job with request_id: {request_id} updated to {Status.PROCESSING}")
+
             updated_job = await collection.find_one(
                 {"request_id": request_id}, {"_id": 0}
             )
             job_data = updated_job.get("job_data")
             vendor_type = job_data.get("vendor_type")
 
-            if vendor_type == "sync":
-                url = urljoin(settings.MOCK_VENDOR_URL, "/vendor/sync")
-                # url = urljoin("http://localhost:8001", "/vendor/sync")
 
-                updated_job_dict = jsonable_encoder(updated_job)
-                response = httpx.post(url, json=updated_job_dict)
 
-                if response.status_code == 200:
-                    await collection.update_one(
-                        {"request_id": request_id},
-                        {"$set": {"status": Status.COMPLETE}},
-                    )
-                else:
-                    await collection.update_one(
-                        {"request_id": request_id}, {"$set": {"status": Status.FAILED}}
-                    )
-            elif vendor_type == "async":
-                url = urljoin(settings.MOCK_VENDOR_URL, "/vendor/async")
-                # url = urljoin("http://localhost:8001", "/vendor/async")
-                updated_job_dict = jsonable_encoder(updated_job)
-                response = httpx.post(url, json=updated_job_dict)
+            async with httpx.AsyncClient() as client:
+                if vendor_type == "sync":
+                    url = urljoin(settings.MOCK_VENDOR_URL, "/vendor/sync")
+                    updated_job_dict = jsonable_encoder(updated_job)
+                    response = await client.post(url, json=updated_job_dict)
 
-                if response.status_code != 202:
-                    await collection.update_one(
-                        {"request_id": request_id}, {"$set": {"status": Status.FAILED}}
-                    )
-            else:
-                ...
+                    if response.status_code == 200:
+                        await collection.update_one(
+                            {"request_id": request_id},
+                            {"$set": {"status": Status.COMPLETE}},
+                        )
+                        log.info(f"Status of job with request_id: {request_id} updated to {Status.COMPLETE}")
+                    else:
+                        await collection.update_one(
+                            {"request_id": request_id}, {"$set": {"status": Status.FAILED}}
+                        )
+                        log.info(f"Status of job with request_id: {request_id} updated to {Status.FAILED}")
+                elif vendor_type == "async":
+                    url = urljoin(settings.MOCK_VENDOR_URL, "/vendor/async")
+                    updated_job_dict = jsonable_encoder(updated_job)
+                    response = await client.post(url, json=updated_job_dict)
+
+                    if response.status_code != 202:
+                        await collection.update_one(
+                            {"request_id": request_id}, {"$set": {"status": Status.FAILED}}
+                        )
+                        log.info(f"Status of job with request_id: {request_id} updated to {Status.FAILED}")
         except Exception as e:
             log.error(f"Error processing message: {e}")
 
