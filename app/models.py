@@ -6,3 +6,8 @@ class Status(StrEnum):
     PROCESSING = "processing"
     COMPLETE = "complete"
     FAILED = "failed"
+
+
+class VendorType(StrEnum):
+    SYNC = "sync"
+    ASYNC = "async"
