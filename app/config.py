@@ -1,10 +1,16 @@
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import asyncio
 
 
 class Settings(BaseSettings):
     app_name: str = "Multi Vendor Fetch Service"
     env: str = "local"
+
+    vendor_rate_limits = {
+        "sync": asyncio.Semaphore(5),
+        "async": asyncio.Semaphore(2),
+    }
 
     APP_SERVICE_URL: str = ""
     RabbitMQ_URL: str = ""
