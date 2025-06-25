@@ -15,9 +15,9 @@
 ┌─────────────────┐                          ┌─────────────────┐
 │    MongoDB      │                          │  Mock Vendors   │
 │                 │                          │                 │
+│ • Metadata      │                          │ • Async Vendor  │
 │ • Job State     │                          │ • Sync Vendor   │
-│ • Results       │                          │ • Async Vendor  │
-│ • Metadata      │                          │ • Test Endpoints│
+│ • Results       │                          │                 │
 └─────────────────┘                          └─────────────────┘
 ```
 
@@ -40,7 +40,7 @@
 2. **Start all services**
 
    ```bash
-   docker-compose up --build
+   docker-compose up --build -d
    ```
 
 3. **Verify the setup**
@@ -51,9 +51,9 @@
 
 4. **For running load test**
 
-```bash
-k6 run loadtest.js
-```
+   ```bash
+   k6 run loadtest.js
+   ```
 
 ## Job Lifecycle
 
