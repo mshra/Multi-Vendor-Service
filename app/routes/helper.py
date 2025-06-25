@@ -14,12 +14,14 @@ from ..logger import log
 from .models import JobRequestModel
 
 
-async def process_job_async(
+async def process_job(
     req_id: UUID4,
     jobs_queue: Annotated[AbstractRobustConnection, Depends(get_connection)],
     jobs: Annotated[AsyncCollection, Depends(get_collection)],
     job_data: JobRequestModel,
 ):
+    log.info(f"Created and processing a job with request_id: {req_id}")
+
     job = {
         "request_id": str(req_id),
         "status": Status.PENDING,
@@ -31,9 +33,11 @@ async def process_job_async(
 
     try:
         result = await jobs.insert_one(job)
-        log.info(f"Job inserted successfully with MongoDB ID: {result.inserted_id}")
+        log.info(
+            f"Job of request_id: {req_id} inserted successfully with MongoDB ID: {result.inserted_id}"
+        )
     except Exception as e:
-        log.error(f"Error while inserting job: {e}")
+        log.error(f"Error while inserting job with request_id: {req_id} - {e}")
 
     try:
         async with jobs_queue:
@@ -48,10 +52,12 @@ async def process_job_async(
             await channel.default_exchange.publish(message, routing_key="jobs_queue")
             log.info(f"Job published to queue with request_id: {req_id}")
     except Exception as e:
-        log.error(f"Error while queueing job: {e}")
+        log.error(f"Error while queueing job with request_id: {req_id} - {e}")
         try:
             if result:
                 await jobs.delete_one({"_id": result.inserted_id})
-                log.info(f"Rolled back job {req_id} from MongoDB")
+                log.info(f"Rolled back job with request_id: {req_id} from MongoDB")
         except Exception as rollback_error:
-            log.error(f"Failed to rollback job {req_id}: {rollback_error}")
+            log.error(
+                f"Failed to rollback job with request_id: {req_id} - {rollback_error}"
+            )

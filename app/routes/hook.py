@@ -1,5 +1,5 @@
 from typing import Annotated
-from ..logger import log
+from app.logger import log
 from typing import Any
 from fastapi import Body
 from app.models import Status
@@ -25,7 +25,7 @@ async def post(
     data = request_data.final_data
 
     try:
-        await jobs.update_one(
+        update_result = await jobs.update_one(
             {"request_id": request_id},
             {
                 "$set": {
@@ -34,8 +34,19 @@ async def post(
                 }
             },
         )
+
+        if update_result.matched_count == 0:
+            log.error(f"No job with request_id: {request_id} exists")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No job found with request_id: {request_id}",
+            )
+
+        log.info(
+            f"Status of job with request_id: {request_id} updated to {Status.COMPLETE}"
+        )
     except Exception as e:
-        log.error(f"Error updating job: {e}")
+        log.error(f"Error updating job with request_id: {request_id} - {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
