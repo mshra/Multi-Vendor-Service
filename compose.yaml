@@ -20,6 +20,8 @@ services:
     build:
       context: .
       dockerfile: docker/vendor/Dockerfile
+    environment:
+      - env=docker
     ports:
       - "8001:80"
     restart: unless-stopped
