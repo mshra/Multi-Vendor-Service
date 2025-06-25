@@ -55,6 +55,17 @@
    k6 run loadtest.js
    ```
 
+# Load Test Insights
+
+- Duration: 60s load + 30s ramp down
+- Concurrent Users: Ramped up to 200 VUs
+- Total Requests: 6,280 (6280 POST /jobs)
+- Success Rate: 100% (job_creation_success)
+- Failures: 0% (http_req_failed)
+- 95th Percentile Latency: 29.56ms
+- Max Latency: 85.16ms
+- Throughput: ~102 req/sec
+
 ## Job Lifecycle
 
 1. **Creation**: Job submitted via API
