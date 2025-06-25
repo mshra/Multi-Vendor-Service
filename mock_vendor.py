@@ -2,6 +2,7 @@ from fastapi import FastAPI, status, Body
 from urllib.parse import urljoin
 from app.config import settings
 from fastapi.responses import JSONResponse
+from app.logger import log
 import asyncio
 import httpx
 import random
@@ -36,16 +37,18 @@ async def async_vendor(data=Body()):
 
 
 async def delayed_webhook_post(data):
-    await asyncio.sleep(random.uniform(1, 2))
+    await asyncio.sleep(random.uniform(0.5, 1.5))
     async with httpx.AsyncClient() as client:
         url = urljoin(settings.APP_SERVICE_URL, "vendor-webhook/async")
-        await client.post(
+        log.info(f"Calling back to webhook at {url} with data: {data}")
+        response = await client.post(
             url,
             json={
                 "request_id": data.get("request_id"),
                 "final_data": data,
             },
         )
+        log.info(f"Callback response: {response.status_code} - {response.text}")
 
 
 @vendor_app.get("/health")
