@@ -4,6 +4,7 @@ from app.config import settings
 from fastapi.responses import JSONResponse
 import asyncio
 import httpx
+import random
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -35,7 +36,7 @@ async def async_vendor(data=Body()):
 
 
 async def delayed_webhook_post(data):
-    await asyncio.sleep(random.uniform(3, 6))
+    await asyncio.sleep(random.uniform(1, 2))
     async with httpx.AsyncClient() as client:
         url = urljoin(settings.APP_SERVICE_URL, "vendor-webhook/async")
         await client.post(
