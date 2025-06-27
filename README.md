@@ -40,7 +40,7 @@
 2. **Start all services**
 
    ```bash
-   docker-compose up --build -d
+   docker compose up --build -d
    ```
 
 3. **Verify the setup**
