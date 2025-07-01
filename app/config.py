@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     app_name: str = "Multi Vendor Fetch Service"
     env: str = "local"
 
-    vendor_rate_limits = {
+    vendor_rate_limits: dict[str, asyncio.Semaphore] = {
         "sync": asyncio.Semaphore(5),
         "async": asyncio.Semaphore(2),
     }
